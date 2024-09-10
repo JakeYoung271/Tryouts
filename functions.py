@@ -71,7 +71,8 @@ def sortPlayers(players):
     # Sort the players based on their ratings
     players.sort(key=lambda x: x.rating, reverse=True)
 
-def getPools(players):
+def getPools(allPlayers):
+    players = [player for player in allPlayers if player.present]
     pools = []
     if len(players) % 4 != 0:
         print("The number of players is not a multiple of 4. Please add or remove players.")
