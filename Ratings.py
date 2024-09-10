@@ -1,9 +1,10 @@
 from player import Player
 from match import Match
+import random
 class Ratings:
-    def __init__(self):
-        self.players = []
-        self.matches = []
+    def __init__(self, players, matches):
+        self.players = players
+        self.matches = matches
     def addPlayer(self, player):
         self.players.append(player)
     def addMatch(self, match):
@@ -20,4 +21,6 @@ class Ratings:
             overallProb *= prob
         return 1-overallProb
     def updateRatings(self):
-        pass
+        for player in self.players:
+            player.rating = random.randint(800, 1200)
+            print(f"{player.name} rating: {player.rating}")

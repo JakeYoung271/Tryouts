@@ -9,6 +9,8 @@ class Match:
         self.team1 = [player1, player2]
         self.team2 = [player3, player4]
         self.result = result
+        self.id = id
+        self.matches = []
     def getRatingDiff(self):
         return (self.team1[0].rating + self.team1[1].rating - self.team2[0].rating - self.team2[1].rating)/2
     def probabilityOfResult(self):
@@ -19,3 +21,5 @@ class Match:
             return 1 - getWinProbability(diff)
         else:
             return 0
+    def addMatch(self, match):
+        self.matches.append(match)
