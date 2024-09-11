@@ -20,7 +20,7 @@ def readRoster():
         name = row["PlayerName"]
         rating = row["Rating"]
         present = False
-        if row["Include"] == "Yes":
+        if row["Include"] == 1:
             present = True
         player = Player(name, index, rating, present=present)
         players.append(player)
@@ -72,7 +72,7 @@ def sortPlayers(players):
     players.sort(key=lambda x: x.rating, reverse=True)
 
 def getPools(allPlayers):
-    players = [player for player in allPlayers if player.present]
+    players = [player for player in allPlayers if player.present==1]
     pools = []
     if len(players) % 4 != 0:
         print("The number of players is not a multiple of 4. Please add or remove players.")
