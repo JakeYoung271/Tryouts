@@ -27,7 +27,8 @@ class Player:
 
         overallProb = statistics.NormalDist(800, 400).cdf(self.rating)
         if overallProb > 0.5:
-            overallProb -= 0.5
+            overallProb = 1 - overallProb
+        overallProb = 1
         for match in self.matches:
             prob = match.probabilityOfResult()
             overallProb *= prob
@@ -35,6 +36,7 @@ class Player:
         return overallProb
     
     def optimizeRating(self, increment):
+        print(f"Optimizing rating for {self.name}")
         initialRating = self.rating
         lastProb = self.computeProbabilty()
         newProb = self.computeProbabilty(increment)
@@ -93,3 +95,9 @@ class Player:
             return pickle.load(file)
 
         print(f"Player data loaded from {player_file_path}")
+        
+        
+        
+if __name__ == "__main__":
+    p = Player.load(13)
+    p.optimizeRating(1)

@@ -61,6 +61,16 @@ class TournamentGUI:
         self.pool_listbox.grid(row=3, column=0, columnspan=2)
         tk.Button(pool_frame, text="Delete Pool", command=self.delete_pool).grid(row=4, column=0, columnspan=2)
 
+        self.pool_swap_label = tk.Label(pool_frame, text="Swap probability")
+        self.pool_swap_label.grid(row=5, column=0)        
+        self.pool_swap_prob = tk.Entry(pool_frame)
+        self.pool_swap_prob.grid(row=5, column=1)
+        
+        self.pool_swap_loops_label = tk.Label(pool_frame, text="Swap loops")
+        self.pool_swap_loops_label.grid(row=6, column=0)
+        self.pool_swap_loops = tk.Entry(pool_frame)
+        self.pool_swap_loops.grid(row=6, column=1)
+
         # --- Score Entry Frame ---
         score_frame = tk.LabelFrame(root, text="Score Entry", padx=10, pady=10)
         score_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
@@ -152,7 +162,6 @@ class TournamentGUI:
             player_info = self.inactive_player_listbox.get(selection[0])
             player_id = int(player_info.split("ID: ")[1].split(")")[0])
             self.manager.remove_player(player_id)
-            # self.manager.waiting_players = deque([p for p in self.manager.waiting_players if p != player_id])
             self.update_player_listbox()
             self.update_ratings_listbox()
         else:
@@ -212,12 +221,23 @@ class TournamentGUI:
         self.pool_listbox.delete(0, tk.END)
         for index, pool in enumerate(self.manager.current_pools):
             players_in_pool = [self.manager.players[p].name for p in pool]
-            self.pool_listbox.insert(tk.END, f"Pool {index} {pool}: {', '.join(players_in_pool)}")
+            self.pool_listbox.insert(tk.END, f"Pool {index}: {','.join(players_in_pool)}: {pool}")
 
     def create_pool(self):
-        """Automatically creates pools from the waiting list."""
+        """Automatically creates pools from a multiple of 4"""
+        
         try:
-            self.manager.create_pools()
+            sp = float(self.pool_swap_prob.get())
+            l = int(self.pool_swap_loops.get())
+            if sp < 0 or sp > 1:
+                raise ValueError
+            if l < 0:
+                raise ValueError     
+        except ValueError as v:
+            messagebox.showerror("Error", "Please use a value between 0 and 1 for swap probability and a positive integer for loops")
+            return
+        try:
+            self.manager.create_pools(sp, l)
         except ValueError as v:
             messagebox.showerror("Error", v.args[0])
         self.update_pool_listbox()
@@ -237,7 +257,9 @@ class TournamentGUI:
         selection = self.pool_listbox.curselection()
         if selection:
             pool_info = self.pool_listbox.get(selection[0])
-            pool = list(map(int, pool_info.split("Pool ")[1].split(":")[0].strip("[]").split(",")))
+            # print(pool_info)
+            # print(pool_info.split(" ")[2].split(":")[0].strip("[]").split(","))
+            pool = list(map(int, pool_info.split(": ")[2].strip("[]").split(",")))
             self.manager.delete_pool(pool)
             self.update_pool_listbox()
         else:
@@ -331,7 +353,7 @@ class TournamentGUI:
         """Updates the ratings listbox with current player ratings."""
         self.ratings_listbox.delete(0, tk.END)
         for player_id, player in self.manager.players.items():
-            self.ratings_listbox.insert(tk.END, f"{player.name} (ID: {player.id}) - Rating: {player.rating}")
+            self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}: {player.rating}")
 
 
 if __name__ == "__main__":

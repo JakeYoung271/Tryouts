@@ -1,5 +1,4 @@
 import random
-import itertools
 from collections import deque
 from match import Match
 from player import Player
@@ -11,7 +10,6 @@ class TryoutsManager:
         self.players = {}  # Stores all players (ID -> Player instance)
         self.active_players = set()  # Stores the IDs of active players
         self.inactive_players = set()  # Stores the IDs of inactive players
-        self.waiting_players = deque()  # Queue of players waiting to be added to a pool
         self.current_pools = []  # List of current active pools (list of player IDs)
         self.sit_out_players = []  # Players who have sat out the last pool
         self.load_players()
@@ -21,7 +19,6 @@ class TryoutsManager:
         for k, v in self.players.items():
             if v.is_active:
                 self.active_players.add(k)
-                self.waiting_players.append(k)
             else:
                 self.inactive_players.add(k)
         
@@ -49,7 +46,6 @@ class TryoutsManager:
             new_player = Player(name=name, roster=self.roster)
             self.players[new_player.id] = new_player
             self.active_players.add(new_player.id)
-            self.waiting_players.append(new_player.id)
             new_player.save()
             print(f"Added player {name} with ID {new_player.id}")
     
@@ -68,7 +64,7 @@ class TryoutsManager:
             print(f"Player with ID {player.id} not found.")
     
     def mark_active(self, player_id):
-        """Marks a player as active and adds them to the waiting list."""
+        """Marks a player as active"""
         player = self.roster.get_player_by_id(player_id)
         player_name = player.name
         player.is_active = True
@@ -76,8 +72,6 @@ class TryoutsManager:
         if player_id in self.players:
             self.active_players.add(player_id)
             self.inactive_players.discard(player_id)
-            if player_id not in self.waiting_players:
-                self.waiting_players.append(player_id)
             print(f"Player {player_id} with name {player_name} marked as active.")
         else:
             print(f"Player with ID {player_id} and Name {player_name} not found.")
@@ -91,7 +85,6 @@ class TryoutsManager:
         if player_id in self.players:
             self.active_players.discard(player_id)
             self.inactive_players.add(player_id)
-            self.waiting_players = deque([p for p in self.waiting_players if p != player_id])
             print(f"Player {player_id} with name {player_name} marked as inactive.")
         else:
             print(f"Player with ID {player_id} and Name {player_name} not active.")
@@ -104,22 +97,32 @@ class TryoutsManager:
         return self.roster.get_player_by_name(player_name).id in self.active_players
         
     
-    def create_pools(self) -> None:
-        """Creates pools of 4 players from the waiting list."""
+    def create_pools(self, swap_prob=0, num_loops=0) -> None:
+        """Creates pools of 4 players from the active list."""
         if self.current_pools:
             raise ValueError(f"Remove existing pools before automatically creating new ones")
-        if len(self.waiting_players) < 4:
-            raise ValueError(f"{len(self.waiting_players)} players are not enough to create a pool automatically")
-        while len(self.waiting_players) >= 4:
-            pool = [self.waiting_players.popleft() for _ in range(4)]
+        if len(self.active_players) % 4 != 0 or len(self.active_players) < 4:
+            raise ValueError(f"Need active players to be a multiple of 4 to create pools")
+        
+        player_ratings = []
+        
+        for k, v in self.players.items():
+            player_ratings.append((v.rating, k))
+            
+        player_ratings.sort()
+        
+        if swap_prob and num_loops:
+            for i in range(num_loops):
+                for j in range(len(player_ratings)-1):
+                    if random.random() < swap_prob:
+                        player_ratings[j], player_ratings[j+1] = player_ratings[j+1], player_ratings[j]
+        
+        while player_ratings:
+            pool = []
+            for i in range(4):
+                pool.append(player_ratings.pop()[1])
             self.current_pools.append(pool)
-            print(f"Created pool with players: {[self.players[p].name for p in pool]}")
-
-        # Handle sit-out scenario if fewer than 4 players remain
-        if 0 < len(self.waiting_players) < 4:
-            self.sit_out_players = list(self.waiting_players)
-            print(f"Players sitting out this round: {[self.players[p].name for p in self.sit_out_players]}")
-    
+            
     def create_manual_pool(self, player_ids: list[str] | list[int]) -> None:
         """
         Manually creates a pool with specified players. Will do so even if pools already exist and haven't been resolved.
@@ -177,6 +180,12 @@ class TryoutsManager:
         self.add_matches((player1, player3), (player2, player4), p1p3vp2p4)
         self.add_matches((player1, player4), (player2, player3), p1p4vp2p3)
         
+        player1.save()
+        player2.save()
+        player3.save()
+        player4.save()
+        self.load_players()
+        
         # Remove the pool after processing
         self.delete_pool(self.current_pools[pool_index])
         print(f"Pool {pool_index} processed and removed.")
@@ -187,7 +196,7 @@ class TryoutsManager:
         while increment != 0:
             changed = False
             for player in players:
-                changed = changed or player.optimizeRating(increment)
+                changed = player.optimizeRating(increment) or changed
             if not changed:
                 increment //= 2
                 
@@ -204,36 +213,20 @@ class TryoutsManager:
         # Adjust ratings based on scores (this is a simplified placeholder)
         for player in team1:
             player.matches.append(match)
-            player.save()
         for player in team2:
             player.matches.append(match)
-            player.save()
-        self.load_players()
         print(f"Ratings updated for players in teams: {team1[0].name}/{team1[1].name}, {team2[0].name}/{team2[1].name}")
 
-    def fairness_system(self) -> None:
-        """
-        Ensure that players who sat out get priority in the next round.
-        Players who sat out previously will be added back to the waiting list first.
-        """
-        for player_id in self.sit_out_players:
-            if player_id not in self.waiting_players:
-                self.waiting_players.appendleft(player_id)
-        self.sit_out_players = []  # Reset the sit-out list for the next round
-
     def delete_pool(self, pool) -> None:
-        """Deletes a pool and adds the players back to the waiting list."""
+        """Deletes a pool."""
         if pool in self.current_pools:
-            for player_id in pool:
-                if player_id not in self.waiting_players:
-                    self.waiting_players.append(player_id)
             self.current_pools.remove(pool)
-            print(f"Pool {pool} deleted, and players re-added to the waiting list.")
+            print(f"Pool {pool} deleted")
         else:
             print("Pool not found.")
     
     def print_player_status(self) -> None:
-        """Prints the status of all players (active, waiting, and in pools)."""
+        """Prints the status of all players (active, inactive and in pools)."""
         print(f"Active players: {[self.players[p].name for p in self.active_players]}")
-        print(f"Waiting players: {[self.players[p].name for p in self.waiting_players]}")
+        print(f"Active players: {[self.players[p].name for p in self.inactive_players]}")
         print(f"Current pools: {self.current_pools}")
