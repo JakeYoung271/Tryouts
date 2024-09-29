@@ -1,3 +1,4 @@
+import gzip
 import os
 import pickle
 import statistics
@@ -76,21 +77,18 @@ class Player:
         players_directory = os.path.join("data", "players")
         if not os.path.exists(players_directory):
             os.makedirs(players_directory)
-        
-        player_file_path = os.path.join(players_directory, f"{self.id}.pkl")
 
-        with open(player_file_path, 'wb') as file:
-            pickle.dump(self, file)
-        print(f"Player data saved to {player_file_path}")
+        player_file_path = os.path.join(players_directory, f"{self.id}.pkl.gz")
+        with gzip.open(player_file_path, 'wb') as file:
+            pickle.dump(self, file, protocol=5)
+        print(f"Player data saved to {player_file_path} with compression")
 
     @staticmethod
     def load(player_id):
-        player_file_path = os.path.join("data", "players", f"{player_id}.pkl")
-
+        player_file_path = os.path.join("data", "players", f"{player_id}.pkl.gz")
         if not os.path.exists(player_file_path):
             raise FileNotFoundError(f"No player data found for ID: {player_id}")
 
-        with open(player_file_path, 'rb') as file:
+        with gzip.open(player_file_path, 'rb') as file:
             return pickle.load(file)
-
-        print(f"Player data loaded from {player_file_path}")
+        print(f"Player data loaded from {player_file_path} with compression")

@@ -1,6 +1,6 @@
 import difflib
 import os
-import pickle
+import dill as pickle
 from player import Player
 
 class Roster:
