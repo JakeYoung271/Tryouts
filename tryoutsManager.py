@@ -105,8 +105,8 @@ class TryoutsManager:
         
         player_ratings = []
         
-        for k, v in self.players.items():
-            player_ratings.append((v.rating, k))
+        for k in self.active_players:
+            player_ratings.append((self.players[k].rating, k))
             
         player_ratings.sort()
         

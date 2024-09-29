@@ -2,6 +2,7 @@ from collections import deque
 import tkinter as tk
 from tkinter import messagebox
 import threading
+from tkinter import ttk
 from roster import Roster
 from tryoutsManager import TryoutsManager
 
