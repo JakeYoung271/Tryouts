@@ -74,6 +74,7 @@ class TryoutsManager:
         player.save()
         if player_id in self.players:
             self.active_players.add(player_id)
+            self.inactive_players.discard(player_id)
             if player_id not in self.waiting_players:
                 self.waiting_players.append(player_id)
             print(f"Player {player_id} with name {player_name} marked as active.")
@@ -88,6 +89,7 @@ class TryoutsManager:
         player.save()
         if player_id in self.players:
             self.active_players.discard(player_id)
+            self.inactive_players.add(player_id)
             self.waiting_players = deque([p for p in self.waiting_players if p != player_id])
             print(f"Player {player_id} with name {player_name} marked as inactive.")
         else:

@@ -16,11 +16,13 @@ class TournamentGUI:
         player_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         # Active Player List
-        self.active_player_label = tk.Label(player_frame, text="Active players").grid(row=0, column=0)
+        self.active_player_label = tk.Label(player_frame, text="Active players")
+        self.active_player_label.grid(row=0, column=0)
         self.active_player_listbox = tk.Listbox(player_frame, height=10)
         self.active_player_listbox.grid(row=1, column=0, columnspan=2)
         
-        self.inactive_player_label = tk.Label(player_frame, text="Inactive players").grid(row=0, column=2)
+        self.inactive_player_label = tk.Label(player_frame, text="Inactive players")
+        self.inactive_player_label.grid(row=0, column=2)
         self.inactive_player_listbox = tk.Listbox(player_frame, height=10)
         self.inactive_player_listbox.grid(row=1, column=2, columnspan=2)
         self.update_player_listbox()
@@ -127,6 +129,8 @@ class TournamentGUI:
                 self.active_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id})")
             else:
                 self.inactive_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id})")
+        self.active_player_label.config(text=f"Active players ({len(self.manager.active_players)})")
+        self.inactive_player_label.config(text=f"Inactive players ({len(self.manager.inactive_players)})")
 
     def add_player(self):
         """Adds a new player."""
