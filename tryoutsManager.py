@@ -1,3 +1,4 @@
+import csv
 import random
 from match import Match
 from player import Player
@@ -11,9 +12,10 @@ class TryoutsManager:
         self.inactive_players = set()  # Stores the IDs of inactive players
         self.current_pools = []  # List of current active pools (list of player IDs)
         self.sit_out_players = []  # Players who have sat out the last pool
+        self.matches = {}
         self.load_players()
-        self.update_activity()
-        
+        self.update_activity()      
+                    
     def save(self):
         for player in self.players.values():
             player.save()
@@ -29,6 +31,8 @@ class TryoutsManager:
         self.players = {}
         for k in self.roster.players_by_id.keys():
             self.players[k] = Player.load(k)
+        for k, v in self.players.items():
+            v.matches = [Match.load(match, self.players) for match in v.matches]
     
     def print_ratings(self):
         for k, v in self.players.items():
@@ -196,7 +200,7 @@ class TryoutsManager:
         Placeholder for actual rating logic.
         """
         team1_score, team2_score = score
-        match = Match(team1[0], team1[1], team2[0], team2[1], team1_score, team2_score)
+        match = Match(self.roster.register_match(), team1[0], team1[1], team2[0], team2[1], int(team1_score > team2_score))
         # Adjust ratings based on scores (this is a simplified placeholder)
         for player in team1:
             player.matches.append(match)
@@ -217,3 +221,7 @@ class TryoutsManager:
         print(f"Active players: {[self.players[p].name for p in self.active_players]}")
         print(f"Active players: {[self.players[p].name for p in self.inactive_players]}")
         print(f"Current pools: {self.current_pools}")
+        
+        
+if __name__ == "__main__":
+    pass

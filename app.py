@@ -1,6 +1,5 @@
 from collections import deque
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
 import threading
 from roster import Roster

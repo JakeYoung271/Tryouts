@@ -3,6 +3,8 @@ import os
 import pickle
 import statistics
 
+from match import Match
+
 MIN_RATING = 0
 MAX_RATING = 2500
 
@@ -10,7 +12,6 @@ class Player:
     def __init__(self, name, roster, rating=800):
         self.name = name
         self.rating = rating
-        self.gamesPlayed = 0
         self.id = roster.register_player(self)  # Register with the Roster and get a unique ID
         self.matches = []
         self.is_active = True
@@ -35,6 +36,7 @@ class Player:
             overallProb *= prob
         self.rating -= increment
         return overallProb
+    
     def optimizeRating(self, increment):
         print(f"Optimizing rating for {self.name}")
         initialRating = self.rating
@@ -74,13 +76,14 @@ class Player:
         print(f"Player data in {player_file_path} deleted")        
     
     def save(self):
+        self.matches = [str(match) for match in self.matches]
         players_directory = os.path.join("data", "players")
         if not os.path.exists(players_directory):
             os.makedirs(players_directory)
 
         player_file_path = os.path.join(players_directory, f"{self.id}.pkl.gz")
         with gzip.open(player_file_path, 'wb') as file:
-            pickle.dump(self, file, protocol=5)
+            pickle.dump(self, file, protocol=pickle.HIGHEST_PROTOCOL)
         print(f"Player data saved to {player_file_path} with compression")
 
     @staticmethod
@@ -92,3 +95,12 @@ class Player:
         with gzip.open(player_file_path, 'rb') as file:
             return pickle.load(file)
         print(f"Player data loaded from {player_file_path} with compression")
+
+
+if __name__ == "__main__":
+    with gzip.open("data/1.pkl.gz", 'rb') as file:
+        p = pickle.load(file)
+        import sys
+        n = sys.getrefcount(p)
+        t = p.matches
+        a = 0

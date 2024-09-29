@@ -1,16 +1,23 @@
 import difflib
 import os
-import dill as pickle
+import pickle
 from player import Player
+from match import Match
 
 class Roster:
     def __init__(self):
         self.players_by_id = {}
         self.players_by_name = {}
         self.next_id = 1
+        self.next_match_id = 1
         
     def print_roster(self):
         print([(k, v) for k, v in self.players_by_id.items()])
+
+    def register_match(self):
+        match_id = self.next_match_id
+        self.next_match_id += 1
+        return match_id
 
     def register_player(self, player: Player):
         # Assign a new unique ID to the player
