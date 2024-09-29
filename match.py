@@ -11,6 +11,9 @@ class Match:
         self.result = int(team1_score > team2_score)
         self.id = id
         self.matches = []
+
+    def __str__(self):
+        return f"Match {self.id}: {self.team1[0].name}, {self.team1[1].name}, {self.team2[0].name}, {self.team2[1].name}, {self.result}"
     def getRatingDiff(self):
         return (self.team1[0].rating + self.team1[1].rating - self.team2[0].rating - self.team2[1].rating)/2
     def probabilityOfResult(self):

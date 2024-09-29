@@ -32,8 +32,8 @@ def createPlayerDict(players):
         player_dict[player.id] = player
     return player_dict
 
-def getPoolsFromSheet(sheet):
-    players = createPlayerDict(readRoster())
+def getPoolsFromSheet(sheet, players):
+    players = createPlayerDict(players)
     num_rows = sheet.max_row
     counter = 1
     pools = []
@@ -50,7 +50,7 @@ def getPoolsFromSheet(sheet):
         pools.append(pool)
     return pools
 
-def aggregateMatches():
+def aggregateMatches(players):
     try:
         wb = load_workbook("Tournament.xlsx")
     except FileNotFoundError:
@@ -61,7 +61,7 @@ def aggregateMatches():
     for i in range(1,numRounds):
         sheet_name = f"Round{i}"
         sheet = wb[sheet_name]
-        pools = getPoolsFromSheet(sheet)
+        pools = getPoolsFromSheet(sheet, players)
         for pool in pools:
             for match in pool.matches:
                 matches.append(match)

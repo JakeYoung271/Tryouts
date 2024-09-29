@@ -33,7 +33,6 @@ class Player:
             overallProb *= prob
         self.rating -= increment
         return overallProb
-    
     def optimizeRating(self, increment):
         initialRating = self.rating
         lastProb = self.computeProbabilty()

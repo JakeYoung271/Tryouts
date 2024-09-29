@@ -49,7 +49,8 @@ def addRound():
     print(f"Sheet '{sheet_name}' added and saved to Tournament.xlsx")
 
 def updateRatings():
-    ratingHandler = Ratings(readRoster(), aggregateMatches())
+    players = readRoster()
+    ratingHandler = Ratings(players, aggregateMatches(players))
     ratingHandler.updateRatings()
 
     try:
