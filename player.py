@@ -34,7 +34,6 @@ class Player:
             overallProb *= prob
         self.rating -= increment
         return overallProb
-    
     def optimizeRating(self, increment):
         print(f"Optimizing rating for {self.name}")
         initialRating = self.rating
@@ -95,9 +94,3 @@ class Player:
             return pickle.load(file)
 
         print(f"Player data loaded from {player_file_path}")
-        
-        
-        
-if __name__ == "__main__":
-    p = Player.load(13)
-    p.optimizeRating(1)
