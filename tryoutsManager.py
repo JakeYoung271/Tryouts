@@ -1,5 +1,4 @@
 import random
-from collections import deque
 from match import Match
 from player import Player
 from roster import Roster
@@ -14,6 +13,10 @@ class TryoutsManager:
         self.sit_out_players = []  # Players who have sat out the last pool
         self.load_players()
         self.update_activity()
+        
+    def save(self):
+        for player in self.players.values():
+            player.save()
         
     def update_activity(self):
         for k, v in self.players.items():
@@ -39,23 +42,21 @@ class TryoutsManager:
         
     def add_player(self, name):
         """Adds a new player and marks them as active."""
-        try:
-            player = self.roster.get_player_by_name(name)
-            print(f"Player {player.name} with ID {player.id} already exists")
-        except ValueError:
-            new_player = Player(name=name, roster=self.roster)
-            self.players[new_player.id] = new_player
-            self.active_players.add(new_player.id)
-            new_player.save()
-            print(f"Added player {name} with ID {new_player.id}")
+        # try:
+        #     player = self.roster.get_player_by_name(name)
+        #     print(f"Player {player.name} with ID {player.id} already exists")
+        # except ValueError:
+        new_player = Player(name=name, roster=self.roster)
+        self.players[new_player.id] = new_player
+        self.active_players.add(new_player.id)
+        print(f"Added player {name} with ID {new_player.id}")
     
     
     def rename_player(self, player_id, new_name):
         """Renames a player by name"""
-        player = self.roster.get_player_by_id(player_id)
+        player = self.players[player_id]
         old_name = player.name
         player.rename(new_name)
-        player.save()
         success = self.roster.rename_player(player, old_name, new_name)
         if success and player.id in self.players:
             self.players[player.id].name = new_name
@@ -65,10 +66,9 @@ class TryoutsManager:
     
     def mark_active(self, player_id):
         """Marks a player as active"""
-        player = self.roster.get_player_by_id(player_id)
+        player = self.players[player_id]
         player_name = player.name
         player.is_active = True
-        player.save()
         if player_id in self.players:
             self.active_players.add(player_id)
             self.inactive_players.discard(player_id)
@@ -78,10 +78,9 @@ class TryoutsManager:
     
     def mark_inactive(self, player_id):
         """Marks a player as inactive."""
-        player = self.roster.get_player_by_id(player_id)
+        player = self.players[player_id]
         player_name = player.name
         player.is_active = False
-        player.save()
         if player_id in self.players:
             self.active_players.discard(player_id)
             self.inactive_players.add(player_id)
@@ -91,11 +90,7 @@ class TryoutsManager:
             
     def list_active_players(self) -> None:
         """Lists all currently active players"""
-        [print(self.roster.get_player_by_id(i).name, i) for i in self.active_players]
-        
-    def check_is_active(self, player_name) -> bool:
-        return self.roster.get_player_by_name(player_name).id in self.active_players
-        
+        [print(self.players[i].name, i) for i in self.active_players]
     
     def create_pools(self, swap_prob=0, num_loops=0) -> None:
         """Creates pools of 4 players from the active list."""
@@ -159,11 +154,11 @@ class TryoutsManager:
         print(f"Manually created pool with players: {[self.players[p].name for p in pool]}")
         
     def get_name_and_id(self, id): 
-        return (self.roster.get_player_by_id(id).name, self.roster.get_player_by_id(id).id)
+        return (self.players[id].name, id)
     
     def print_pools(self):
         for ind, pool in enumerate(self.current_pools):
-            print(ind, [(self.roster.get_player_by_id(i).name,i) for i in pool])
+            print(ind, [(self.players[i].name,i) for i in pool])
 
     def input_scores(self, pool_index, p1p2vp3p4, p1p3vp2p4, p1p4vp2p3) -> None:
         """
@@ -171,23 +166,18 @@ class TryoutsManager:
         Scores are expected in the form:
         """
         player1, player2, player3, player4 = self.current_pools[pool_index]
-        player1 = self.roster.get_player_by_id(player1)
-        player2 = self.roster.get_player_by_id(player2)
-        player3 = self.roster.get_player_by_id(player3)
-        player4 = self.roster.get_player_by_id(player4)
+        player1 = self.players[player1]
+        player2 = self.players[player2]
+        player3 = self.players[player3]
+        player4 = self.players[player4]
         
         self.add_matches((player1, player2), (player3, player4), p1p2vp3p4)
         self.add_matches((player1, player3), (player2, player4), p1p3vp2p4)
         self.add_matches((player1, player4), (player2, player3), p1p4vp2p3)
         
-        player1.save()
-        player2.save()
-        player3.save()
-        player4.save()
-        self.load_players()
-        
         # Remove the pool after processing
         self.delete_pool(self.current_pools[pool_index])
+
         print(f"Pool {pool_index} processed and removed.")
     
     def update_ratings(self) -> None:
@@ -199,10 +189,7 @@ class TryoutsManager:
                 changed = player.optimizeRating(increment) or changed
             if not changed:
                 increment //= 2
-                
-        for player in players:
-            player.save()
-        self.load_players()
+        # self.load_players()
 
     def add_matches(self, team1, team2, score) -> None:
         """

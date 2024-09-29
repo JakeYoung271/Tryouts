@@ -31,6 +31,8 @@ class Roster:
         print(self.players_by_name)
         print(old_name)
         player_id = player.id
+        if new_name in self.players_by_name:
+            return False
         if old_name not in self.players_by_name:
             return False
         del self.players_by_name[old_name]

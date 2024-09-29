@@ -1,7 +1,8 @@
 from collections import deque
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
-
+import threading
 from roster import Roster
 from tryoutsManager import TryoutsManager
 
@@ -64,11 +65,13 @@ class TournamentGUI:
         self.pool_swap_label = tk.Label(pool_frame, text="Swap probability")
         self.pool_swap_label.grid(row=5, column=0)        
         self.pool_swap_prob = tk.Entry(pool_frame)
+        self.pool_swap_prob.insert(0, "0.33")
         self.pool_swap_prob.grid(row=5, column=1)
         
         self.pool_swap_loops_label = tk.Label(pool_frame, text="Swap loops")
         self.pool_swap_loops_label.grid(row=6, column=0)
         self.pool_swap_loops = tk.Entry(pool_frame)
+        self.pool_swap_loops.insert(0, "5")
         self.pool_swap_loops.grid(row=6, column=1)
 
         # --- Score Entry Frame ---
@@ -281,10 +284,10 @@ class TournamentGUI:
         self.selected_pool = str(pool_id)
         
         player1, player2, player3, player4 = current_pool
-        player1 = self.manager.roster.get_player_by_id(player1)
-        player2 = self.manager.roster.get_player_by_id(player2)
-        player3 = self.manager.roster.get_player_by_id(player3)
-        player4 = self.manager.roster.get_player_by_id(player4)
+        player1 = self.manager.players[player1]
+        player2 = self.manager.players[player2]
+        player3 = self.manager.players[player3]
+        player4 = self.manager.players[player4]
 
         
         first_match = f"{player1.name}/{player2.name} vs {player3.name}/{player4.name}"
@@ -307,13 +310,12 @@ class TournamentGUI:
         if pool_id != self.selected_pool:
             messagebox.showerror("Error", "Pool ID has changed")
             return
-            
+        
         score1 = self.scores_entry_first.get()
         score1 = self.validate_score(score1)
         if not score1:
             messagebox.showerror("Error", "The first score has invalid formatting. Please use the format %d-%d")
             return
-            
         
         score2 = self.scores_entry_second.get()
         score2 = self.validate_score(score2)
@@ -326,12 +328,13 @@ class TournamentGUI:
         if not score3:
             messagebox.showerror("Error", "The third score has invalid formatting. Please use the format %d-%d")
             return
+
         
         self.manager.input_scores(int(pool_id), score1, score2, score3)
         self.update_ratings_listbox()
         self.update_pool_listbox()
-        self.hide_score_entry()
-            
+        self.hide_score_entry() 
+
     def validate_score(self, score: str):
         if score.count("-") != 1:
             return False
@@ -361,4 +364,36 @@ if __name__ == "__main__":
     roster = Roster.load_roster()  # Load the roster
     manager = TryoutsManager(roster)  # Initialize the tryouts manager
     gui = TournamentGUI(root, manager)
+    def save_player_data(manager, save_window, progress_bar):
+        # Save player data (this should be a non-blocking operation)
+        manager.save()  # Replace with your actual save logic
+        
+        # Close the progress bar and root window safely in the main thread
+        def on_save_complete():
+            progress_bar.stop()
+            save_window.destroy()
+            root.quit()  # Use root.quit() instead of root.destroy() to safely exit the main loop
+        
+        # Schedule the UI update using `after` to run on the main thread
+        root.after(0, on_save_complete)
+
+    def on_closing():
+        # Create a pop-up window for the saving message
+        save_window = tk.Toplevel(root)
+        save_window.title("Saving Data")
+        save_window.geometry("300x100")
+        
+        # Display a message
+        label = tk.Label(save_window, text="Saving player data, please wait...")
+        label.pack(pady=10)
+        
+        # Create and pack a progress bar
+        progress_bar = ttk.Progressbar(save_window, orient="horizontal", mode="indeterminate", length=250)
+        progress_bar.pack(pady=5)
+        progress_bar.start()  # Start the progress bar animation
+
+        # Run the save operation in a separate thread
+        threading.Thread(target=save_player_data, args=(manager, save_window, progress_bar)).start()
+        
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
