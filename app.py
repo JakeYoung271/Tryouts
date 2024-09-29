@@ -324,7 +324,8 @@ class TournamentGUI:
     # --- Ratings Display Functions ---
 
     def update_ratings(self):
-        pass
+        self.manager.update_ratings()
+        self.update_ratings_listbox()
 
     def update_ratings_listbox(self):
         """Updates the ratings listbox with current player ratings."""

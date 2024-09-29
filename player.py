@@ -1,5 +1,6 @@
 import os
-import pickle    
+import pickle
+import statistics
 
 MIN_RATING = 0
 MAX_RATING = 2500
@@ -24,7 +25,9 @@ class Player:
 
         # update this to take into account likelihood of an extreme rating.
 
-        overallProb = 1
+        overallProb = statistics.NormalDist(800, 400).cdf(self.rating)
+        if overallProb > 0.5:
+            overallProb -= 0.5
         for match in self.matches:
             prob = match.probabilityOfResult()
             overallProb *= prob
