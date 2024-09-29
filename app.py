@@ -95,6 +95,9 @@ class TournamentGUI:
 
         self.ratings_listbox = tk.Listbox(ratings_frame, height=10)
         self.ratings_listbox.grid(row=0, column=0, columnspan=2)
+        
+        self.ratings_button = tk.Button(ratings_frame, text="Update ratings", command=self.update_ratings)
+        self.ratings_button.grid(row=0, column=2)
         self.update_ratings_listbox()
         
     def hide_score_entry(self):
@@ -319,6 +322,9 @@ class TournamentGUI:
         return (left, right)
 
     # --- Ratings Display Functions ---
+
+    def update_ratings(self):
+        pass
 
     def update_ratings_listbox(self):
         """Updates the ratings listbox with current player ratings."""
