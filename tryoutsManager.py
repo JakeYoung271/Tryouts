@@ -181,6 +181,16 @@ class TryoutsManager:
         self.delete_pool(self.current_pools[pool_index])
         print(f"Pool {pool_index} processed and removed.")
     
+    def update_ratings(self) -> None:
+        players = self.players.values()
+        increment = 64
+        while increment != 0:
+            changed = False
+            for player in players:
+                changed = changed or player.optimizeRating(increment)
+            if not changed:
+                increment //= 2
+
     def add_matches(self, team1, team2, score) -> None:
         """
         Placeholder for actual rating logic.
