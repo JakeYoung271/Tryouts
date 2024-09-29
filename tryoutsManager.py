@@ -1,6 +1,7 @@
 import random
 import itertools
 from collections import deque
+from match import Match
 from player import Player
 from roster import Roster
 
@@ -171,26 +172,27 @@ class TryoutsManager:
         player2 = self.roster.get_player_by_id(player2)
         player3 = self.roster.get_player_by_id(player3)
         player4 = self.roster.get_player_by_id(player4)
-            
-        self.update_ratings((player1, player2), (player3, player4), p1p2vp3p4)
-        self.update_ratings((player1, player3), (player2, player4), p1p3vp2p4)
-        self.update_ratings((player1, player4), (player2, player3), p1p4vp2p3)
+        
+        self.add_matches((player1, player2), (player3, player4), p1p2vp3p4)
+        self.add_matches((player1, player3), (player2, player4), p1p3vp2p4)
+        self.add_matches((player1, player4), (player2, player3), p1p4vp2p3)
         
         # Remove the pool after processing
         self.delete_pool(self.current_pools[pool_index])
         print(f"Pool {pool_index} processed and removed.")
     
-    def update_ratings(self, team1, team2, score) -> None:
+    def add_matches(self, team1, team2, score) -> None:
         """
         Placeholder for actual rating logic.
         """
         team1_score, team2_score = score
+        match = Match(team1[0], team1[1], team2[0], team2[1], team1_score, team2_score)
         # Adjust ratings based on scores (this is a simplified placeholder)
         for player in team1:
-            player.rating += (team1_score - team2_score)  # Adjust by the score difference
+            player.matches.append(match)
             player.save()
         for player in team2:
-            player.rating -= (team1_score - team2_score)
+            player.matches.append(match)
             player.save()
         self.load_players()
         print(f"Ratings updated for players in teams: {team1[0].name}/{team1[1].name}, {team2[0].name}/{team2[1].name}")

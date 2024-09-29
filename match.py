@@ -5,10 +5,10 @@ def getWinProbability(diff):
 
 class Match:
     #result should be 1 if team one wins, 0 if team two wins
-    def __init__(self, player1, player2, player3, player4, result):
+    def __init__(self, player1, player2, player3, player4, team1_score, team2_score):
         self.team1 = [player1, player2]
         self.team2 = [player3, player4]
-        self.result = result
+        self.result = int(team1_score > team2_score)
         self.id = id
         self.matches = []
     def getRatingDiff(self):
