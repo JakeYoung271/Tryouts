@@ -142,9 +142,9 @@ class TournamentGUI:
             player = self.manager.players[player_id]
             status = "Active" if player_id in self.manager.active_players else "Inactive"
             if status == "Active":
-                self.active_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id})")
+                self.active_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id}) G:{player.games_played}")
             else:
-                self.inactive_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id})")
+                self.inactive_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id}) G:{player.games_played}")
         self.active_player_label.config(text=f"Active players ({len(self.manager.active_players)})")
         self.inactive_player_label.config(text=f"Inactive players ({len(self.manager.inactive_players)})")
 
@@ -333,6 +333,7 @@ class TournamentGUI:
         self.manager.input_scores(int(pool_id), score1, score2, score3)
         self.update_ratings_listbox()
         self.update_pool_listbox()
+        self.update_player_listbox()
         self.hide_score_entry() 
 
     def validate_score(self, score: str):

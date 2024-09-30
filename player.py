@@ -15,12 +15,15 @@ class Player:
         self.id = roster.register_player(self)  # Register with the Roster and get a unique ID
         self.matches = []
         self.is_active = True
+        self.games_played = 0
 
     def setRating(self, newRating):
         self.rating = newRating
 
     def addMatch(self, match):
         self.matches.append(match)
+        self.games_played = len(self.matches)
+        
 
     def computeProbabilty(self, increment=0):
         self.rating += increment
@@ -93,7 +96,9 @@ class Player:
             raise FileNotFoundError(f"No player data found for ID: {player_id}")
 
         with gzip.open(player_file_path, 'rb') as file:
-            return pickle.load(file)
+            p = pickle.load(file)
+            p.games_played = len(p.matches)
+            return p
         print(f"Player data loaded from {player_file_path} with compression")
 
 

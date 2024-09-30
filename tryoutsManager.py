@@ -203,9 +203,9 @@ class TryoutsManager:
         match = Match(self.roster.register_match(), team1[0], team1[1], team2[0], team2[1], int(team1_score > team2_score))
         # Adjust ratings based on scores (this is a simplified placeholder)
         for player in team1:
-            player.matches.append(match)
+            player.addMatch(match)
         for player in team2:
-            player.matches.append(match)
+            player.addMatch(match)
         print(f"Ratings updated for players in teams: {team1[0].name}/{team1[1].name}, {team2[0].name}/{team2[1].name}")
 
     def delete_pool(self, pool) -> None:
