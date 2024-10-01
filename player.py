@@ -24,6 +24,12 @@ class Player:
         self.matches.append(match)
         self.games_played = len(self.matches)
         
+    def updateMatch(self, match_id, match):
+        for i in range(len(self.matches)):
+            if self.matches[i].id == match_id:
+                self.matches[i] = match
+                return
+        
 
     def computeProbabilty(self, increment=0):
         self.rating += increment

@@ -33,6 +33,8 @@ class TryoutsManager:
             self.players[k] = Player.load(k)
         for k, v in self.players.items():
             v.matches = [Match.load(match, self.players) for match in v.matches]
+            for m in v.matches:
+                self.matches[m.id] = m
     
     def print_ratings(self):
         for k, v in self.players.items():
@@ -163,6 +165,20 @@ class TryoutsManager:
     def print_pools(self):
         for ind, pool in enumerate(self.current_pools):
             print(ind, [(self.players[i].name,i) for i in pool])
+            
+    def update_score(self, match_index, score):
+        team1_score, team2_score = score
+        result = int(team1_score > team2_score)
+        
+        if self.matches[match_index].result == result:
+            return
+        self.matches[match_index].result = result
+        
+        match = self.matches[match_index]
+        match.team1[0].updateMatch(match_index, match)
+        match.team1[1].updateMatch(match_index, match)
+        match.team2[0].updateMatch(match_index, match)
+        match.team2[1].updateMatch(match_index, match)
 
     def input_scores(self, pool_index, p1p2vp3p4, p1p3vp2p4, p1p4vp2p3) -> None:
         """

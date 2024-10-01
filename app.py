@@ -113,6 +113,44 @@ class TournamentGUI:
         self.ratings_button.grid(row=0, column=2)
         self.update_ratings_listbox()
         
+        # --- Matches Display Frame ---
+        matches_frame = tk.LabelFrame(root, text="Matches", padx=10, pady=10)
+        matches_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+        
+        self.matches_listbox = tk.Listbox(matches_frame, height=10)
+        self.matches_listbox.grid(row=0, column=0, columnspan=1)
+        self.update_matches_listbox()
+        
+        # --- Matches Edit Frame
+        matches_edit_frame = tk.LabelFrame(root, text="Edit Matches", pady=10, padx=10)
+        matches_edit_frame.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
+         
+        # Enter Scores
+        tk.Label(matches_edit_frame, text="Match ID:").grid(row=0, column=0)
+        self.match_id_entry = tk.Entry(matches_edit_frame)
+        self.match_id_entry.grid(row=0, column=1)
+        tk.Button(matches_edit_frame, text="Choose Match", command=self.choose_match).grid(row=1, column=0, columnspan=2)
+
+        self.match_label = tk.Label(matches_edit_frame, text="Scores (team1_score, team2_score):")
+        self.match_label.grid(row=2, column=0)
+        self.match_entry = tk.Entry(matches_edit_frame)
+        self.match_entry.grid(row=2, column=1)
+
+        self.match_button_submit = tk.Button(matches_edit_frame, text="Submit Scores", command=self.submit_match)
+        self.match_button_submit.grid(row=5, column=0, columnspan=2)
+        
+        self.hide_match_entry()
+        
+    def hide_match_entry(self):
+        self.match_entry.grid_forget()
+        self.match_button_submit.grid_forget()
+        self.match_label.grid_forget()
+    
+    def show_match_entry(self):
+        self.match_entry.grid(row=2, column=1)
+        self.match_button_submit.grid(row=5, column=0, columnspan=2)
+        self.match_label.grid(row=2, column=0)
+        
     def hide_score_entry(self):
         self.scores_entry_first.grid_forget()
         self.scores_label_first.grid_forget()
@@ -279,7 +317,7 @@ class TournamentGUI:
         try:
             pool_id = int(pool_id)
             current_pool = self.manager.current_pools[pool_id]
-        except (ValueError, IndexError):
+        except (ValueError, IndexError, KeyError):
             messagebox.showerror("Error", "Invalid pool ID!")
         self.selected_pool = str(pool_id)
         
@@ -309,6 +347,8 @@ class TournamentGUI:
         print(self.selected_pool)
         if pool_id != self.selected_pool:
             messagebox.showerror("Error", "Pool ID has changed")
+            self.pool_id_entry.delete(0, len(str(pool_id)))
+            self.hide_score_entry()
             return
         
         score1 = self.scores_entry_first.get()
@@ -334,6 +374,7 @@ class TournamentGUI:
         self.update_ratings_listbox()
         self.update_pool_listbox()
         self.update_player_listbox()
+        self.update_matches_listbox()
         self.hide_score_entry() 
 
     def validate_score(self, score: str):
@@ -358,6 +399,56 @@ class TournamentGUI:
         self.ratings_listbox.delete(0, tk.END)
         for player_id, player in self.manager.players.items():
             self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}: {player.rating}")
+            
+            
+    # --- Match management functions ---
+    def update_matches_listbox(self):
+        """Updates the matches listbox with latest matches"""
+        self.matches_listbox.delete(0, tk.END)
+        for match_id, match in self.manager.matches.items():
+            self.matches_listbox.insert(tk.END, f"{match_id}: {match.team1[0].name}/{match.team1[1].name} {'beat' if match.result == 1 else 'lost to'} {match.team2[0].name}/{match.team2[1].name}")
+            
+            
+    def choose_match(self):
+        match_id = self.match_id_entry.get()
+        if not match_id or match_id:
+            messagebox.showerror("Error", "Match cannot be empty!")
+            return
+        try:
+            match_id = int(match_id)
+            current_match = self.manager.matches[match_id]
+        except (ValueError, IndexError, KeyError):
+            messagebox.showerror("Error", "Invalid match ID!")
+        self.selected_match = str(match_id)
+        
+        player1, player2 = current_match.team1
+        player3, player4 = current_match.team2
+
+        
+        match_text = f"{player1.name}/{player2.name} vs {player3.name}/{player4.name}"
+
+        self.match_label.config(text=match_text)
+        
+        self.show_match_entry()
+        
+    def submit_match(self):
+        """Submits the score for a match."""
+        match_id = self.match_id_entry.get()
+        if match_id != self.selected_match:
+            messagebox.showerror("Error", "Match ID has changed")
+            self.match_id_entry.delete(0, len(str(match_id)))
+            self.hide_match_entry()
+            return
+        
+        score = self.match_entry.get()
+        score = self.validate_score(score)
+        if not score:
+            messagebox.showerror("Error", "The 'Edit Match' score has invalid formatting. Please use the format %d-%d")
+            return
+        
+        self.manager.update_score(int(match_id), score)
+        self.update_matches_listbox()
+        self.hide_match_entry() 
 
 
 if __name__ == "__main__":
