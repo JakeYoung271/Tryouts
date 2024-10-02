@@ -419,7 +419,7 @@ class TournamentGUI:
         else:
             players = sorted(self.manager.players.items(), key=lambda x: (x[1].games_played, x[1].rating, x[1].id), reverse=True)
         for player_id, player in players:
-            self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}, {player.rating} ({player.games_played} games)")
+            self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}, {player.rating} ({player.wins}-{player.losses}, {player.games_played} games)")
             
             
     # --- Match management functions ---

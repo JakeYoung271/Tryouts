@@ -16,13 +16,50 @@ class Player:
         self.matches = []
         self.is_active = True
         self.games_played = 0
+        self.wins = 0
+        self.losses = 0
 
+    def update_members(self):
+        self.games_played = len(self.matches)
+        self.wins = 0
+        self.losses = 0
+
+        for match in self.matches:
+            if type(match) == str:
+                player1, player2, player3, player4, result = [int(i) for i in match.split(",")[1:]]
+                if player1 == self.id or player2 == self.id:
+                    if result == 1:
+                        self.wins += 1
+                    else:
+                        self.losses += 1
+                else:
+                    if result == 0:
+                        self.wins += 1
+                    else:
+                        self.losses += 1
+            if type(match)==Match:
+                if match.team1[0].id == self.id or match.team1[1].id == self.id:
+                    if match.result == 1:
+                        self.wins += 1
+                    else:
+                        self.losses += 1
+                else:
+                    if match.result == 0:
+                        self.wins += 1
+                    else:
+                        self.losses += 1
     def setRating(self, newRating):
         self.rating = newRating
 
     def addMatch(self, match):
         self.matches.append(match)
         self.games_played = len(self.matches)
+
+        # not sure if match is a string or a Match object
+        # can take out update members to just increment wins or losses
+        # but left it in because it checks if the object is a string or not first and looks cleaner
+        # even though it resets the wins and losses every time
+
         
     def updateMatch(self, match_id, match):
         for i in range(len(self.matches)):
@@ -103,7 +140,7 @@ class Player:
 
         with gzip.open(player_file_path, 'rb') as file:
             p = pickle.load(file)
-            p.games_played = len(p.matches)
+            p.update_members()
             return p
         print(f"Player data loaded from {player_file_path} with compression")
 

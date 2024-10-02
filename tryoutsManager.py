@@ -209,7 +209,8 @@ class TryoutsManager:
                 changed = player.optimizeRating(increment) or changed
             if not changed:
                 increment //= 2
-        # self.load_players()
+        for player in players:
+            player.update_members()
 
     def add_matches(self, team1, team2, score) -> None:
         """
