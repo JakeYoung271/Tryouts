@@ -2,6 +2,7 @@ import gzip
 import os
 import pickle
 import statistics
+import math
 
 from match import Match
 
@@ -76,11 +77,12 @@ class Player:
         overallProb = statistics.NormalDist(800, 400).cdf(self.rating)
         if overallProb > 0.5:
             overallProb = 1 - overallProb
-        overallProb = 1
+        overallProb **= 1/4
         for match in self.matches:
             prob = match.probabilityOfResult()
             overallProb *= prob
         self.rating -= increment
+        print(overallProb)
         return overallProb
     
     def optimizeRating(self, increment):
