@@ -103,14 +103,21 @@ class TournamentGUI:
         self.hide_score_entry()
 
         # --- Ratings Display Frame ---
+
+        self.is_orderded_by_ratings = True
+
         ratings_frame = tk.LabelFrame(root, text="Player Ratings", padx=10, pady=10)
         ratings_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
         self.ratings_listbox = tk.Listbox(ratings_frame, height=10)
-        self.ratings_listbox.grid(row=0, column=0, columnspan=2)
+        self.ratings_listbox.grid(row=0, column=0, columnspan=3)
         
         self.ratings_button = tk.Button(ratings_frame, text="Update ratings", command=self.update_ratings)
-        self.ratings_button.grid(row=0, column=2)
+        self.order_rating = tk.Button(ratings_frame, text="Order by rating", command=self.order_by_ratings)
+        self.order_games = tk.Button(ratings_frame, text="Order by Games Played", command=self.order_by_games_played)
+        self.ratings_button.grid(row=1, column=0)
+        self.order_rating.grid(row=2, column=0)
+        self.order_games.grid(row=3, column=0)
         self.update_ratings_listbox()
         
         # --- Matches Display Frame ---
@@ -371,7 +378,10 @@ class TournamentGUI:
 
         
         self.manager.input_scores(int(pool_id), score1, score2, score3)
+
+        # is update ratings listbox necessary here?
         self.update_ratings_listbox()
+
         self.update_pool_listbox()
         self.update_player_listbox()
         self.update_matches_listbox()
@@ -389,6 +399,12 @@ class TournamentGUI:
         return (left, right)
 
     # --- Ratings Display Functions ---
+    def order_by_ratings(self):
+        self.is_orderded_by_ratings = True
+        self.update_ratings_listbox()
+    def order_by_games_played(self):
+        self.is_orderded_by_ratings = False
+        self.update_ratings_listbox()
 
     def update_ratings(self):
         self.manager.update_ratings()
@@ -397,8 +413,13 @@ class TournamentGUI:
     def update_ratings_listbox(self):
         """Updates the ratings listbox with current player ratings."""
         self.ratings_listbox.delete(0, tk.END)
-        for player_id, player in self.manager.players.items():
-            self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}: {player.rating}")
+        players = []
+        if self.is_orderded_by_ratings:
+            players = sorted(self.manager.players.items(), key=lambda x: (x[1].rating, x[1].games_played, x[1].id), reverse=True)
+        else:
+            players = sorted(self.manager.players.items(), key=lambda x: (x[1].games_played, x[1].rating, x[1].id), reverse=True)
+        for player_id, player in players:
+            self.ratings_listbox.insert(tk.END, f"{player.name[:min(len(player.name), 10)]}, {player.rating} ({player.games_played} games)")
             
             
     # --- Match management functions ---
