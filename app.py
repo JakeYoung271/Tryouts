@@ -183,13 +183,21 @@ class TournamentGUI:
         """Updates the player listbox with active players."""
         self.active_player_listbox.delete(0, tk.END)
         self.inactive_player_listbox.delete(0, tk.END)
+        active = []
+        inactive = []
         for player_id in self.manager.players:
             player = self.manager.players[player_id]
             status = "Active" if player_id in self.manager.active_players else "Inactive"
             if status == "Active":
-                self.active_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id}) G:{player.games_played}")
+                active.append(f"{player.name} (ID: {player.id}) G:{player.games_played}")
             else:
-                self.inactive_player_listbox.insert(tk.END, f"{player.name} (ID: {player.id}) G:{player.games_played}")
+                inactive.append(f"{player.name} (ID: {player.id}) G:{player.games_played}")
+        active.sort()
+        inactive.sort()
+        for entry in active:
+            self.active_player_listbox.insert(tk.END, entry)
+        for entry in inactive:
+            self.inactive_player_listbox.insert(tk.END, entry)
         self.active_player_label.config(text=f"Active players ({len(self.manager.active_players)})")
         self.inactive_player_label.config(text=f"Inactive players ({len(self.manager.inactive_players)})")
 
@@ -477,36 +485,36 @@ if __name__ == "__main__":
     roster = Roster.load_roster()  # Load the roster
     manager = TryoutsManager(roster)  # Initialize the tryouts manager
     gui = TournamentGUI(root, manager)
-    def save_player_data(manager, save_window, progress_bar):
-        # Save player data (this should be a non-blocking operation)
-        manager.save()  # Replace with your actual save logic
+    # def save_player_data(manager, save_window, progress_bar):
+    #     # Save player data (this should be a non-blocking operation)
+    #     manager.save()  # Replace with your actual save logic
         
-        # Close the progress bar and root window safely in the main thread
-        def on_save_complete():
-            progress_bar.stop()
-            save_window.destroy()
-            root.quit()  # Use root.quit() instead of root.destroy() to safely exit the main loop
+    #     # Close the progress bar and root window safely in the main thread
+    #     def on_save_complete():
+    #         progress_bar.stop()
+    #         save_window.destroy()
+    #         root.quit()  # Use root.quit() instead of root.destroy() to safely exit the main loop
         
-        # Schedule the UI update using `after` to run on the main thread
-        root.after(0, on_save_complete)
+    #     # Schedule the UI update using `after` to run on the main thread
+    #     root.after(0, on_save_complete)
 
-    def on_closing():
-        # Create a pop-up window for the saving message
-        save_window = tk.Toplevel(root)
-        save_window.title("Saving Data")
-        save_window.geometry("300x100")
+    # def on_closing():
+    #     # Create a pop-up window for the saving message
+    #     save_window = tk.Toplevel(root)
+    #     save_window.title("Saving Data")
+    #     save_window.geometry("300x100")
         
-        # Display a message
-        label = tk.Label(save_window, text="Saving player data, please wait...")
-        label.pack(pady=10)
+    #     # Display a message
+    #     label = tk.Label(save_window, text="Saving player data, please wait...")
+    #     label.pack(pady=10)
         
-        # Create and pack a progress bar
-        progress_bar = ttk.Progressbar(save_window, orient="horizontal", mode="indeterminate", length=250)
-        progress_bar.pack(pady=5)
-        progress_bar.start()  # Start the progress bar animation
+    #     # Create and pack a progress bar
+    #     progress_bar = ttk.Progressbar(save_window, orient="horizontal", mode="indeterminate", length=250)
+    #     progress_bar.pack(pady=5)
+    #     progress_bar.start()  # Start the progress bar animation
 
-        # Run the save operation in a separate thread
-        threading.Thread(target=save_player_data, args=(manager, save_window, progress_bar)).start()
+    #     # Run the save operation in a separate thread
+    #     threading.Thread(target=save_player_data, args=(manager, save_window, progress_bar)).start()
         
-    root.protocol("WM_DELETE_WINDOW", on_closing)
+    # root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()

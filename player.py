@@ -124,6 +124,7 @@ class Player:
         print(f"Player data in {player_file_path} deleted")        
     
     def save(self):
+        temp = self.matches
         self.matches = [str(match) for match in self.matches]
         players_directory = os.path.join("data", "players")
         if not os.path.exists(players_directory):
@@ -133,6 +134,7 @@ class Player:
         with gzip.open(player_file_path, 'wb') as file:
             pickle.dump(self, file, protocol=pickle.HIGHEST_PROTOCOL)
         print(f"Player data saved to {player_file_path} with compression")
+        self.matches = temp
 
     @staticmethod
     def load(player_id):

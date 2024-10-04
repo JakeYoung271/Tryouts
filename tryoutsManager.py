@@ -1,3 +1,4 @@
+from collections import Counter
 import csv
 import random
 from match import Match
@@ -69,6 +70,7 @@ class TryoutsManager:
             print(f"Player {player.id} {old_name} renamed to {new_name}")
         else:
             print(f"Player with ID {player.id} not found.")
+        player.save()
     
     def mark_active(self, player_id):
         """Marks a player as active"""
@@ -130,7 +132,7 @@ class TryoutsManager:
         :param player_ids: List of player IDs or names.
         """
         # Validate pool size
-        if len(player_ids) != 4:
+        if len(player_ids) != 4 or len(Counter(player_ids).keys()) != 4:
             raise ValueError("Pools must contain exactly 4 players.")
         
         # Convert names to IDs if necessary
@@ -221,8 +223,10 @@ class TryoutsManager:
         # Adjust ratings based on scores (this is a simplified placeholder)
         for player in team1:
             player.addMatch(match)
+            player.save()
         for player in team2:
             player.addMatch(match)
+            player.save()
         print(f"Ratings updated for players in teams: {team1[0].name}/{team1[1].name}, {team2[0].name}/{team2[1].name}")
 
     def delete_pool(self, pool) -> None:
