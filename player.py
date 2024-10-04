@@ -82,7 +82,7 @@ class Player:
             prob = match.probabilityOfResult()
             overallProb *= prob
         self.rating -= increment
-        print(overallProb)
+        # print(overallProb)
         return overallProb
     
     def optimizeRating(self, increment):
