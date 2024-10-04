@@ -432,7 +432,7 @@ class TournamentGUI:
             
     def choose_match(self):
         match_id = self.match_id_entry.get()
-        if not match_id or match_id:
+        if not match_id:
             messagebox.showerror("Error", "Match cannot be empty!")
             return
         try:
