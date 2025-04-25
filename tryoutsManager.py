@@ -14,12 +14,37 @@ class TryoutsManager:
         self.current_pools = []  # List of current active pools (list of player IDs)
         self.sit_out_players = []  # Players who have sat out the last pool
         self.matches = {}
+        self.pkl_matches = set()
         self.load_players()
+        self.load_matches(self.players)
         self.update_activity()      
                     
     def save(self):
+        self.save_matches()
+        self.save_players()
         for player in self.players.values():
             player.save()
+            
+    def save_players(self):
+        with open("data/players.csv", "w", newline="") as file:
+            writer = csv.writer(file, delimiter=',')
+            rows = []
+            players = sorted(self.players.values(), key=lambda x: x.rating, reverse=True)
+            for player in players:
+                rows.append([player.name, str(player.id), str(player.start_rating), str(player.rating), player.games_played])
+            rows.insert(0, ["Name", "ID", "Starting Rating", "Rating", "Games"])
+            writer.writerows(rows)
+            
+    def save_matches(self):
+        lines = ["Match ID,Team1_Player1,Team1_Player2,Team2_Player1,Team2_Player2,Result\n"]
+        d = []
+        for k, v in self.matches.items():
+            d.append(str(v)+"\n")
+        d.sort()
+        lines.extend(d)
+        with open("data/matches.csv", "w") as f:
+            f.writelines(lines)
+
         
     def update_activity(self):
         for k, v in self.players.items():
@@ -27,7 +52,25 @@ class TryoutsManager:
                 self.active_players.add(k)
             else:
                 self.inactive_players.add(k)
-        
+    
+    def load_matches(self, player_dict):
+        self.matches = {}
+        with open("data/matches.csv", "r") as f:
+            data = f.readlines()[1:]
+            for m in data:
+                mid = int(m.split(",")[0])
+                self.matches[mid] = Match.load(m, player_dict)
+        for k, v in self.matches.items():
+            if k not in self.pkl_matches:
+                for i in v.team1:
+                    i.addMatch(v)
+                for i in v.team2:
+                    i.addMatch(v)
+        try:    
+            self.roster.next_match_id = max(self.matches.keys())+1
+        except:
+            pass
+    
     def load_players(self):
         self.players = {}
         for k in self.roster.players_by_id.keys():
@@ -35,7 +78,7 @@ class TryoutsManager:
         for k, v in self.players.items():
             v.matches = [Match.load(match, self.players) for match in v.matches]
             for m in v.matches:
-                self.matches[m.id] = m
+                self.pkl_matches.add(m.id)
     
     def print_ratings(self):
         for k, v in self.players.items():
@@ -47,13 +90,13 @@ class TryoutsManager:
         self.roster.delete_player(player)
         player.delete()
         
-    def add_player(self, name):
+    def add_player(self, name, rating):
         """Adds a new player and marks them as active."""
         # try:
         #     player = self.roster.get_player_by_name(name)
         #     print(f"Player {player.name} with ID {player.id} already exists")
         # except ValueError:
-        new_player = Player(name=name, roster=self.roster)
+        new_player = Player(name=name, roster=self.roster, rating=rating, start_rating=rating)
         self.players[new_player.id] = new_player
         self.active_players.add(new_player.id)
         print(f"Added player {name} with ID {new_player.id}")
@@ -193,9 +236,12 @@ class TryoutsManager:
         player3 = self.players[player3]
         player4 = self.players[player4]
         
-        self.add_matches((player1, player2), (player3, player4), p1p2vp3p4)
-        self.add_matches((player1, player3), (player2, player4), p1p3vp2p4)
-        self.add_matches((player1, player4), (player2, player3), p1p4vp2p3)
+        if p1p2vp3p4 != "*":
+            self.add_matches((player1, player2), (player3, player4), p1p2vp3p4)
+        if p1p3vp2p4 != "*":
+            self.add_matches((player1, player3), (player2, player4), p1p3vp2p4)
+        if p1p4vp2p3 != "*":
+            self.add_matches((player1, player4), (player2, player3), p1p4vp2p3)
         
         # Remove the pool after processing
         self.delete_pool(self.current_pools[pool_index])

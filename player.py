@@ -10,9 +10,10 @@ MIN_RATING = 0
 MAX_RATING = 2500
 
 class Player:
-    def __init__(self, name, roster, rating=800):
+    def __init__(self, name, roster, rating=800, start_rating=800):
         self.name = name
         self.rating = rating
+        self.start_rating = start_rating
         self.id = roster.register_player(self)  # Register with the Roster and get a unique ID
         self.matches = []
         self.is_active = True
@@ -51,6 +52,12 @@ class Player:
                         self.losses += 1
     def setRating(self, newRating):
         self.rating = newRating
+        
+    # def weightedRating(self):
+    #     self.games_played = len(self.matches)
+    #     if self.games_played == 0:
+    #         return self.start_rating
+    #     return ((self.games_played-1)*self.rating+self.start_rating)/self.games_played
 
     def addMatch(self, match):
         self.matches.append(match)
@@ -74,15 +81,14 @@ class Player:
 
         # update this to take into account likelihood of an extreme rating.
 
-        overallProb = statistics.NormalDist(800, 400).cdf(self.rating)
-        if overallProb > 0.5:
-            overallProb = 1 - overallProb
-        overallProb **= 1/4
+        overallProb = 1
         for match in self.matches:
             prob = match.probabilityOfResult()
             overallProb *= prob
+        cdf = statistics.NormalDist(self.start_rating, 400).cdf(self.rating)
+        rating_likelihood = max(cdf, 1-cdf)
+        overallProb *= rating_likelihood
         self.rating -= increment
-        # print(overallProb)
         return overallProb
     
     def optimizeRating(self, increment):

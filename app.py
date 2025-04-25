@@ -5,6 +5,7 @@ import threading
 from tkinter import ttk
 from roster import Roster
 from tryoutsManager import TryoutsManager
+from player import MIN_RATING, MAX_RATING
 
 class TournamentGUI:
     def __init__(self, root, manager):
@@ -32,17 +33,20 @@ class TournamentGUI:
         tk.Label(player_frame, text="Name:").grid(row=2, column=0)
         self.player_name_entry = tk.Entry(player_frame)
         self.player_name_entry.grid(row=2, column=1)
-        tk.Button(player_frame, text="Add Player", command=self.add_player).grid(row=3, column=0, columnspan=2)
+        tk.Label(player_frame, text="Rating:").grid(row=3, column=0)
+        self.player_rating_entry = tk.Entry(player_frame)
+        self.player_rating_entry.grid(row=3, column=1)
+        tk.Button(player_frame, text="Add Player", command=self.add_player).grid(row=4, column=0, columnspan=2)
 
         # Rename Player
-        tk.Button(player_frame, text="Rename Player", command=self.rename_player).grid(row=4, column=0, columnspan=2)
+        tk.Button(player_frame, text="Rename Player", command=self.rename_player).grid(row=5, column=0, columnspan=2)
 
         # Remove Player
-        tk.Button(player_frame, text="Remove Player", command=self.remove_player).grid(row=5, column=0, columnspan=2)
+        tk.Button(player_frame, text="Remove Player", command=self.remove_player).grid(row=6, column=0, columnspan=2)
 
         # Mark Active / Inactive
-        tk.Button(player_frame, text="Mark Active", command=self.mark_active).grid(row=6, column=0)
-        tk.Button(player_frame, text="Mark Inactive", command=self.mark_inactive).grid(row=6, column=1)
+        tk.Button(player_frame, text="Mark Active", command=self.mark_active).grid(row=7, column=0)
+        tk.Button(player_frame, text="Mark Inactive", command=self.mark_inactive).grid(row=7, column=1)
 
         # --- Pool Management Frame ---
         pool_frame = tk.LabelFrame(root, text="Pool Management", padx=10, pady=10)
@@ -204,8 +208,18 @@ class TournamentGUI:
     def add_player(self):
         """Adds a new player."""
         name = self.player_name_entry.get()
+        rating = self.player_rating_entry.get()
+        try:
+            if not rating:
+                rating = 800
+            elif (int(rating) >= MIN_RATING and int(rating) <= MAX_RATING):
+                rating = int(rating)
+            else:
+                raise Exception
+        except:
+            messagebox.showerror("Error", f"Initial player rating must be an integer between {MIN_RATING} and {MAX_RATING}")
         if name:
-            self.manager.add_player(name)
+            self.manager.add_player(name, rating)
             self.update_player_listbox()
             self.update_ratings_listbox()
         else:
@@ -396,6 +410,8 @@ class TournamentGUI:
         self.hide_score_entry() 
 
     def validate_score(self, score: str):
+        if score == "*":
+            return score
         if score.count("-") != 1:
             return False
         left, right = score.split("-")
@@ -485,36 +501,36 @@ if __name__ == "__main__":
     roster = Roster.load_roster()  # Load the roster
     manager = TryoutsManager(roster)  # Initialize the tryouts manager
     gui = TournamentGUI(root, manager)
-    # def save_player_data(manager, save_window, progress_bar):
-    #     # Save player data (this should be a non-blocking operation)
-    #     manager.save()  # Replace with your actual save logic
+    def save_player_data(manager, save_window, progress_bar):
+        # Save player data (this should be a non-blocking operation)
+        manager.save()  # Replace with your actual save logic
         
-    #     # Close the progress bar and root window safely in the main thread
-    #     def on_save_complete():
-    #         progress_bar.stop()
-    #         save_window.destroy()
-    #         root.quit()  # Use root.quit() instead of root.destroy() to safely exit the main loop
+        # Close the progress bar and root window safely in the main thread
+        def on_save_complete():
+            progress_bar.stop()
+            save_window.destroy()
+            root.quit()  # Use root.quit() instead of root.destroy() to safely exit the main loop
         
-    #     # Schedule the UI update using `after` to run on the main thread
-    #     root.after(0, on_save_complete)
+        # Schedule the UI update using `after` to run on the main thread
+        root.after(0, on_save_complete)
 
-    # def on_closing():
-    #     # Create a pop-up window for the saving message
-    #     save_window = tk.Toplevel(root)
-    #     save_window.title("Saving Data")
-    #     save_window.geometry("300x100")
+    def on_closing():
+        # Create a pop-up window for the saving message
+        save_window = tk.Toplevel(root)
+        save_window.title("Saving Data")
+        save_window.geometry("300x100")
         
-    #     # Display a message
-    #     label = tk.Label(save_window, text="Saving player data, please wait...")
-    #     label.pack(pady=10)
+        # Display a message
+        label = tk.Label(save_window, text="Saving player data, please wait...")
+        label.pack(pady=10)
         
-    #     # Create and pack a progress bar
-    #     progress_bar = ttk.Progressbar(save_window, orient="horizontal", mode="indeterminate", length=250)
-    #     progress_bar.pack(pady=5)
-    #     progress_bar.start()  # Start the progress bar animation
+        # Create and pack a progress bar
+        progress_bar = ttk.Progressbar(save_window, orient="horizontal", mode="indeterminate", length=250)
+        progress_bar.pack(pady=5)
+        progress_bar.start()  # Start the progress bar animation
 
-    #     # Run the save operation in a separate thread
-    #     threading.Thread(target=save_player_data, args=(manager, save_window, progress_bar)).start()
+        # Run the save operation in a separate thread
+        threading.Thread(target=save_player_data, args=(manager, save_window, progress_bar)).start()
         
-    # root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()

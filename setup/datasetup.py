@@ -17,6 +17,9 @@ def create_data_directory_structure():
     os.makedirs(players_directory, exist_ok=True)
     os.makedirs(matches_directory, exist_ok=True)
     os.makedirs(rounds_directory, exist_ok=True)
+    
+    open(os.path.join(data_directory, "matches.csv"), "a").close()
+    open(os.path.join(data_directory, "players.csv"), "a").close()
 
     print(f"Data directory structure created at: {data_directory}")
 
