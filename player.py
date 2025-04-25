@@ -124,7 +124,7 @@ class Player:
         if not os.path.exists(players_directory):
             os.makedirs(players_directory)
         
-        player_file_path = os.path.join(players_directory, f"{self.id}.pkl")
+        player_file_path = os.path.join(players_directory, f"{self.id}.pkl.gz")
 
         os.remove(player_file_path)
         print(f"Player data in {player_file_path} deleted")        
