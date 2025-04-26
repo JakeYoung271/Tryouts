@@ -86,7 +86,7 @@ class Player:
             prob = match.probabilityOfResult()
             overallProb *= prob
         cdf = statistics.NormalDist(self.start_rating, 400).cdf(self.rating)
-        rating_likelihood = max(cdf, 1-cdf)
+        rating_likelihood = min(cdf, 1-cdf)
         overallProb *= rating_likelihood
         self.rating -= increment
         return overallProb
